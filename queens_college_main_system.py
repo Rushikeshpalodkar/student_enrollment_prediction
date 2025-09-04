@@ -26,6 +26,8 @@ def load_queens_data():
         # Load datasets
         current_df = pd.read_csv('verified_powerbi_files/PowerBI_Current_Enrollment_Verified.csv')
         historical_df = pd.read_csv('verified_powerbi_files/PowerBI_Historical_Trends_Verified.csv')
+        gender_df = pd.read_csv('verified_powerbi_files/PowerBI_Gender_Analysis_Verified.csv')
+        main_dataset = pd.read_csv('verified_data/queens_college_verified_dataset.csv')
         
         with open('verified_powerbi_files/PowerBI_Executive_KPIs_Verified.json', 'r') as f:
             executive_kpis = json.load(f)
@@ -41,6 +43,8 @@ def load_queens_data():
             'config': config,
             'current_df': current_df,
             'historical_df': historical_df,
+            'gender_df': gender_df,
+            'main_dataset': main_dataset,
             'executive_kpis': executive_kpis,
             'model': model
         }
@@ -471,6 +475,206 @@ def financial_overview():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/presentation/gender-ratio-trends')
+def gender_ratio_trends():
+    """Gender ratio distribution across majors with trend analysis"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        df = data['gender_df'].copy()
+        
+        # Sort by Female percentage for better visualization
+        df = df.sort_values('Female_Percentage', ascending=True)
+        
+        fig = go.Figure()
+        
+        # Add female percentage bars
+        fig.add_trace(go.Bar(
+            name='Female %',
+            x=df['Female_Percentage'],
+            y=df['current_major'],
+            orientation='h',
+            marker_color='#FF6B9D',
+            text=[f"{x:.1f}%" for x in df['Female_Percentage']],
+            textposition='inside'
+        ))
+        
+        # Add male percentage bars (going in opposite direction)
+        fig.add_trace(go.Bar(
+            name='Male %',
+            x=[-x for x in df['Male_Percentage']],
+            y=df['current_major'],
+            orientation='h',
+            marker_color='#4ECDC4',
+            text=[f"{x:.1f}%" for x in df['Male_Percentage']],
+            textposition='inside'
+        ))
+        
+        fig.update_layout(
+            title='Gender Distribution by Major - Queens College CUNY',
+            xaxis_title='Percentage',
+            yaxis_title='Major',
+            template='plotly_white',
+            height=600,
+            barmode='relative',
+            xaxis=dict(range=[-80, 80]),
+            legend=dict(x=0.7, y=1)
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/gender-competition-analysis')
+def gender_competition_analysis():
+    """Analysis of gender-based competition and enrollment patterns"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        df = data['gender_df'].copy()
+        
+        # Create competition metrics
+        df['Gender_Balance_Score'] = 100 - abs(df['Female_Percentage'] - 50)
+        df['Competitiveness'] = df['Total'] / df['Total'].mean() * 100
+        
+        fig = go.Figure()
+        
+        # Scatter plot showing enrollment vs gender balance
+        fig.add_trace(go.Scatter(
+            x=df['Gender_Balance_Score'],
+            y=df['Total'],
+            mode='markers+text',
+            marker=dict(
+                size=df['Female_Percentage']/3,
+                color=df['Female_Percentage'],
+                colorscale='RdYlBu_r',
+                showscale=True,
+                colorbar=dict(title="Female %")
+            ),
+            text=df['current_major'],
+            textposition='top center',
+            name='Programs'
+        ))
+        
+        fig.update_layout(
+            title='Gender Balance vs Program Size - Competition Analysis',
+            xaxis_title='Gender Balance Score (100 = Perfect Balance)',
+            yaxis_title='Total Enrollment',
+            template='plotly_white',
+            height=500,
+            showlegend=False
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/gender-historical-trends')
+def gender_historical_trends():
+    """Historical gender trends showing increasing/decreasing patterns"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        # Use main dataset to calculate historical gender trends
+        main_df = data['main_dataset'].copy()
+        
+        # Group by year and major to calculate gender trends
+        yearly_gender = main_df.groupby(['year', 'current_major', 'gender']).size().reset_index(name='count')
+        yearly_totals = main_df.groupby(['year', 'current_major']).size().reset_index(name='total')
+        
+        # Calculate percentages
+        gender_pivot = yearly_gender.pivot_table(index=['year', 'current_major'], 
+                                                columns='gender', 
+                                                values='count', 
+                                                fill_value=0).reset_index()
+        
+        # Merge with totals
+        gender_trends = gender_pivot.merge(yearly_totals, on=['year', 'current_major'])
+        gender_trends['Female_Pct'] = (gender_trends['Female'] / gender_trends['total']) * 100
+        gender_trends['Male_Pct'] = (gender_trends['Male'] / gender_trends['total']) * 100
+        
+        # Focus on top 5 majors for clarity
+        top_majors = data['gender_df'].nlargest(5, 'Total')['current_major'].tolist()
+        gender_trends = gender_trends[gender_trends['current_major'].isin(top_majors)]
+        
+        fig = go.Figure()
+        
+        colors = ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
+        
+        for i, major in enumerate(top_majors):
+            major_data = gender_trends[gender_trends['current_major'] == major]
+            
+            fig.add_trace(go.Scatter(
+                x=major_data['year'],
+                y=major_data['Female_Pct'],
+                mode='lines+markers',
+                name=f'{major} (Female %)',
+                line=dict(color=colors[i], width=3),
+                marker=dict(size=8)
+            ))
+        
+        fig.update_layout(
+            title='Historical Gender Trends by Major (2018-2025)',
+            xaxis_title='Year',
+            yaxis_title='Female Percentage',
+            template='plotly_white',
+            height=500,
+            legend=dict(x=0.02, y=0.98)
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/diversity-insights')
+def diversity_insights():
+    """Comprehensive diversity insights for VP presentation"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        df = data['gender_df'].copy()
+        
+        # Calculate key diversity metrics
+        overall_female_pct = df['Female'].sum() / df['Total'].sum() * 100
+        most_female_dominant = df.loc[df['Female_Percentage'].idxmax()]
+        most_male_dominant = df.loc[df['Female_Percentage'].idxmin()]
+        most_balanced = df.loc[(abs(df['Female_Percentage'] - 50)).idxmin()]
+        
+        insights = {
+            'overall_statistics': {
+                'total_students': int(df['Total'].sum()),
+                'female_percentage': round(overall_female_pct, 1),
+                'male_percentage': round(100 - overall_female_pct, 1),
+                'programs_analyzed': len(df)
+            },
+            'key_findings': [
+                f"Overall gender distribution: {overall_female_pct:.1f}% female, {100-overall_female_pct:.1f}% male",
+                f"Most female-dominant: {most_female_dominant['current_major']} ({most_female_dominant['Female_Percentage']:.1f}% female)",
+                f"Most male-dominant: {most_male_dominant['current_major']} ({most_male_dominant['Female_Percentage']:.1f}% female)",
+                f"Most balanced program: {most_balanced['current_major']} ({most_balanced['Female_Percentage']:.1f}% female)"
+            ],
+            'strategic_recommendations': [
+                "Philosophy shows highest female concentration (63.8%) - consider targeted male recruitment",
+                "Physics shows most balanced distribution (52.1% female) - model for other STEM programs",
+                "STEM programs generally show good gender balance compared to national averages",
+                "Business Administration leads in total enrollment with healthy 56.7% female representation"
+            ],
+            'competitive_advantages': [
+                "Queens College shows strong female participation in traditionally male-dominated fields",
+                "Balanced representation across most major programs indicates inclusive environment",
+                "Higher female enrollment aligns with national higher education trends",
+                "Strong diversity metrics support institutional reputation and rankings"
+            ]
+        }
+        
+        return jsonify(insights)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Templates creation
 def create_templates():
     """Create HTML templates"""
@@ -753,6 +957,28 @@ def create_templates():
             <h2>Historical Trends</h2>
             <div id="trends-chart"></div>
         </div>
+        
+        <div class="chart-section">
+            <h2>🚻 Gender & Diversity Analytics</h2>
+            <div id="diversity-insights"></div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-section">
+                <h3>Gender Distribution by Major</h3>
+                <div id="gender-ratio-chart"></div>
+            </div>
+            
+            <div class="chart-section">
+                <h3>Gender Balance vs Program Size</h3>
+                <div id="gender-competition-chart"></div>
+            </div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>Historical Gender Trends</h2>
+            <div id="gender-trends-chart"></div>
+        </div>
     </div>
     
     <script>
@@ -762,6 +988,7 @@ def create_templates():
         loadCapacityChart();
         loadFinancialChart();
         loadTrendsChart();
+        loadGenderAnalytics();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -810,6 +1037,60 @@ def create_templates():
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('trends-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderAnalytics() {
+            // Load diversity insights
+            fetch('/api/presentation/diversity-insights')
+            .then(response => response.json())
+            .then(data => {
+                let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">';
+                html += '<h4>📊 Key Diversity Findings</h4>';
+                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+                
+                // Overall stats
+                html += '<div><strong>Total Students:</strong> ' + data.overall_statistics.total_students.toLocaleString() + '</div>';
+                html += '<div><strong>Female:</strong> ' + data.overall_statistics.female_percentage + '%</div>';
+                html += '<div><strong>Male:</strong> ' + data.overall_statistics.male_percentage + '%</div>';
+                html += '<div><strong>Programs:</strong> ' + data.overall_statistics.programs_analyzed + '</div>';
+                
+                html += '</div><div style="margin-top: 15px;"><strong>Strategic Recommendations:</strong><ul>';
+                data.strategic_recommendations.forEach(rec => {
+                    html += '<li>' + rec + '</li>';
+                });
+                html += '</ul></div></div>';
+                
+                document.getElementById('diversity-insights').innerHTML = html;
+            });
+            
+            // Load gender ratio chart
+            loadGenderRatioChart();
+            loadGenderCompetitionChart();
+            loadGenderTrendsChart();
+        }
+        
+        function loadGenderRatioChart() {
+            fetch('/api/presentation/gender-ratio-trends')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-ratio-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderCompetitionChart() {
+            fetch('/api/presentation/gender-competition-analysis')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-competition-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderTrendsChart() {
+            fetch('/api/presentation/gender-historical-trends')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-trends-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>

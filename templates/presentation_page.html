@@ -52,6 +52,28 @@
             <h2>Historical Trends</h2>
             <div id="trends-chart"></div>
         </div>
+        
+        <div class="chart-section">
+            <h2>🚻 Gender & Diversity Analytics</h2>
+            <div id="diversity-insights"></div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-section">
+                <h3>Gender Distribution by Major</h3>
+                <div id="gender-ratio-chart"></div>
+            </div>
+            
+            <div class="chart-section">
+                <h3>Gender Balance vs Program Size</h3>
+                <div id="gender-competition-chart"></div>
+            </div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>Historical Gender Trends</h2>
+            <div id="gender-trends-chart"></div>
+        </div>
     </div>
     
     <script>
@@ -61,6 +83,7 @@
         loadCapacityChart();
         loadFinancialChart();
         loadTrendsChart();
+        loadGenderAnalytics();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -109,6 +132,60 @@
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('trends-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderAnalytics() {
+            // Load diversity insights
+            fetch('/api/presentation/diversity-insights')
+            .then(response => response.json())
+            .then(data => {
+                let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">';
+                html += '<h4>📊 Key Diversity Findings</h4>';
+                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+                
+                // Overall stats
+                html += '<div><strong>Total Students:</strong> ' + data.overall_statistics.total_students.toLocaleString() + '</div>';
+                html += '<div><strong>Female:</strong> ' + data.overall_statistics.female_percentage + '%</div>';
+                html += '<div><strong>Male:</strong> ' + data.overall_statistics.male_percentage + '%</div>';
+                html += '<div><strong>Programs:</strong> ' + data.overall_statistics.programs_analyzed + '</div>';
+                
+                html += '</div><div style="margin-top: 15px;"><strong>Strategic Recommendations:</strong><ul>';
+                data.strategic_recommendations.forEach(rec => {
+                    html += '<li>' + rec + '</li>';
+                });
+                html += '</ul></div></div>';
+                
+                document.getElementById('diversity-insights').innerHTML = html;
+            });
+            
+            // Load gender ratio chart
+            loadGenderRatioChart();
+            loadGenderCompetitionChart();
+            loadGenderTrendsChart();
+        }
+        
+        function loadGenderRatioChart() {
+            fetch('/api/presentation/gender-ratio-trends')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-ratio-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderCompetitionChart() {
+            fetch('/api/presentation/gender-competition-analysis')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-competition-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadGenderTrendsChart() {
+            fetch('/api/presentation/gender-historical-trends')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('gender-trends-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>
