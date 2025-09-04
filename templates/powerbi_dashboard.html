@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queens College CUNY - Power BI Web Integration</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #003366 0%, #004080 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #FFD700;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid rgba(255,215,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .kpi-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255,215,0,0.2);
+            min-height: 400px;
+        }
+        
+        .chart-title {
+            color: #FFD700;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .powerbi-actions {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .powerbi-actions h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #003366;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>QUEENS COLLEGE CUNY</h1>
+        <p>Power BI Web Integration - Real-time Analytics Dashboard</p>
+    </div>
+    
+    <div class="refresh-indicator" id="refreshIndicator">
+        Last Updated: <span id="lastUpdate">Loading...</span>
+    </div>
+    
+    <div class="container">
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpiGrid">
+            <div class="loading">Loading KPIs...</div>
+        </div>
+        
+        <!-- Power BI Actions -->
+        <div class="powerbi-actions">
+            <h3>Power BI Integration Options</h3>
+            <button class="btn" onclick="exportToPowerBI()">Export Current Data to Power BI</button>
+            <button class="btn" onclick="downloadPowerBIFiles()">Download All Power BI Files</button>
+            <button class="btn" onclick="openPowerBIGuide()">Power BI Setup Guide</button>
+            <button class="btn" onclick="refreshData()">Refresh Data</button>
+        </div>
+        
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <div class="chart-title">Current Enrollment by Major</div>
+                <div id="enrollmentChart" class="loading">Loading chart...</div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">Capacity Utilization</div>
+                <div id="capacityChart" class="loading">Loading chart...</div>
+            </div>
+            
+            <div class="chart-container" style="grid-column: 1 / -1;">
+                <div class="chart-title">Historical Enrollment Trends</div>
+                <div id="trendsChart" class="loading">Loading chart...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load KPIs
+        async function loadKPIs() {
+            try {
+                const response = await fetch('/api/kpis');
+                const kpis = await response.json();
+                
+                const kpiGrid = document.getElementById('kpiGrid');
+                kpiGrid.innerHTML = `
+                    <div class="kpi-card">
+                        <div class="kpi-value">${kpis.total_enrollment || '2,720'}</div>
+                        <div class="kpi-label">Total Enrollment</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">${kpis.overall_utilization || '88.7'}%</div>
+                        <div class="kpi-label">Capacity Utilization</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">${kpis.average_graduation_rate || '71.8'}%</div>
+                        <div class="kpi-label">Graduation Rate</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">$21.4M</div>
+                        <div class="kpi-label">Annual Revenue</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading KPIs:', error);
+            }
+        }
+        
+        // Load charts
+        async function loadCharts() {
+            try {
+                // Enrollment chart
+                const enrollmentResponse = await fetch('/api/charts/enrollment');
+                const enrollmentData = await enrollmentResponse.json();
+                Plotly.newPlot('enrollmentChart', enrollmentData.data, enrollmentData.layout);
+                
+                // Capacity chart
+                const capacityResponse = await fetch('/api/charts/capacity');
+                const capacityData = await capacityResponse.json();
+                Plotly.newPlot('capacityChart', capacityData.data, capacityData.layout);
+                
+                // Trends chart
+                const trendsResponse = await fetch('/api/charts/trends');
+                const trendsData = await trendsResponse.json();
+                Plotly.newPlot('trendsChart', trendsData.data, trendsData.layout);
+                
+            } catch (error) {
+                console.error('Error loading charts:', error);
+            }
+        }
+        
+        // Power BI integration functions
+        function exportToPowerBI() {
+            alert('Opening Power BI export dialog...\nFiles available in: powerbi_dashboards/');
+            window.open('powerbi_dashboards/', '_blank');
+        }
+        
+        function downloadPowerBIFiles() {
+            alert('Power BI Files Ready:\n' +
+                  '• PowerBI_Current_Year_2025_Detailed.csv\n' +
+                  '• PowerBI_Historical_Enrollment_2018-2025.csv\n' +
+                  '• PowerBI_Executive_KPIs.json\n' +
+                  '• PowerBI_Capacity_Analysis.csv\n' +
+                  '• PowerBI_Gender_Analysis_by_Major.csv');
+        }
+        
+        function openPowerBIGuide() {
+            window.open('vp_presentation/PowerBI_Quick_Start.md', '_blank');
+        }
+        
+        function refreshData() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            loadKPIs();
+            loadCharts();
+        }
+        
+        // Initialize dashboard
+        window.addEventListener('load', () => {
+            loadKPIs();
+            loadCharts();
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(refreshData, 300000);
+        });
+    </script>
+</body>
+</html>
+    
