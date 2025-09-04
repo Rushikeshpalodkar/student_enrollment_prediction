@@ -43,8 +43,8 @@
             </div>
             
             <div class="chart-section">
-                <h3>Financial Overview</h3>
-                <div id="financial-chart"></div>
+                <h3>Class Size Planning</h3>
+                <div id="class-planning-chart"></div>
             </div>
         </div>
         
@@ -74,6 +74,11 @@
             <h2>Historical Gender Trends</h2>
             <div id="gender-trends-chart"></div>
         </div>
+        
+        <div class="chart-section">
+            <h2>📈 Enrollment Predictions for 2026</h2>
+            <div id="enrollment-predictions-chart"></div>
+        </div>
     </div>
     
     <script>
@@ -81,9 +86,10 @@
         loadExecutiveKPIs();
         loadEnrollmentChart();
         loadCapacityChart();
-        loadFinancialChart();
+        loadClassPlanningChart();
         loadTrendsChart();
         loadGenderAnalytics();
+        loadEnrollmentPredictions();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -95,8 +101,8 @@
                 
                 document.getElementById('kpi-section').innerHTML = 
                     '<div class="kpi-row">' +
-                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_enrollment.toLocaleString() + '</div><div class="kpi-label">Total Enrollment</div></div>' +
-                    '<div class="kpi-card"><div class="kpi-number">' + financial.revenue_formatted + '</div><div class="kpi-label">Annual Revenue</div></div>' +
+                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_enrollment.toLocaleString() + '</div><div class="kpi-label">Total Students</div></div>' +
+                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_programs + '</div><div class="kpi-label">Academic Programs</div></div>' +
                     '<div class="kpi-card"><div class="kpi-number">' + kpis.capacity_utilization_pct + '%</div><div class="kpi-label">Capacity Utilization</div></div>' +
                     '<div class="kpi-card"><div class="kpi-number">' + academic.average_college_gpa + '</div><div class="kpi-label">Average GPA</div></div>' +
                     '</div>';
@@ -119,11 +125,11 @@
             });
         }
         
-        function loadFinancialChart() {
-            fetch('/api/presentation/financial-overview')
+        function loadClassPlanningChart() {
+            fetch('/api/presentation/class-size-planning')
             .then(response => response.json())
             .then(chartData => {
-                Plotly.newPlot('financial-chart', chartData.data, chartData.layout, {responsive: true});
+                Plotly.newPlot('class-planning-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
         
@@ -186,6 +192,14 @@
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('gender-trends-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadEnrollmentPredictions() {
+            fetch('/api/presentation/enrollment-predictions')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('enrollment-predictions-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>

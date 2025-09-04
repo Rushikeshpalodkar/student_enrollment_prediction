@@ -439,36 +439,62 @@ def historical_trends():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/presentation/financial-overview')
-def financial_overview():
-    """Financial metrics overview"""
+@app.route('/api/presentation/class-size-planning')
+def class_size_planning():
+    """Class size and capacity planning based on enrollment predictions"""
     try:
         if not data:
             return jsonify({'error': 'Data not available'}), 500
             
-        kpis = data['executive_kpis']
+        current_df = data['current_df']
         
-        # Create financial overview pie chart
-        labels = ['Tuition Revenue', 'Financial Aid', 'Other Revenue']
-        values = [
-            kpis['financial_metrics']['annual_tuition_revenue'],
-            kpis['financial_metrics']['annual_tuition_revenue'] * 0.3,  # Estimated aid
-            kpis['financial_metrics']['estimated_net_revenue'] * 0.2    # Other revenue
-        ]
+        # Calculate recommended class sizes based on enrollment
+        df_copy = current_df.copy()
+        df_copy['Classes_Needed'] = (df_copy['Current_Enrollment'] / 25).round().astype(int)  # 25 students per class
+        df_copy['Large_Classes'] = (df_copy['Current_Enrollment'] / 50).round().astype(int)  # 50 students for large lectures
+        df_copy['Small_Classes'] = (df_copy['Current_Enrollment'] / 15).round().astype(int)  # 15 students for seminars
         
-        fig = go.Figure([
-            go.Pie(
-                labels=labels,
-                values=values,
-                hole=0.4,
-                marker_colors=['#003366', '#FFD700', '#4A90E2']
-            )
-        ])
+        # Top 8 majors for visualization
+        df_top = df_copy.head(8)
+        
+        fig = go.Figure()
+        
+        # Add bars for different class sizes
+        fig.add_trace(go.Bar(
+            name='Standard Classes (25 students)',
+            x=df_top['current_major'],
+            y=df_top['Classes_Needed'],
+            marker_color='#003366',
+            text=df_top['Classes_Needed'],
+            textposition='auto'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name='Large Lectures (50 students)',
+            x=df_top['current_major'],
+            y=df_top['Large_Classes'],
+            marker_color='#4A90E2',
+            text=df_top['Large_Classes'],
+            textposition='auto'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name='Seminars (15 students)',
+            x=df_top['current_major'],
+            y=df_top['Small_Classes'],
+            marker_color='#FFD700',
+            text=df_top['Small_Classes'],
+            textposition='auto'
+        ))
         
         fig.update_layout(
-            title='Queens College Financial Overview',
+            title='Class Size Planning by Major - Academic Year 2025',
+            xaxis_title='Major',
+            yaxis_title='Number of Classes Needed',
             template='plotly_white',
-            height=400
+            height=500,
+            barmode='group',
+            margin=dict(l=50, r=50, t=60, b=120)
         )
         
         return jsonify(fig.to_dict())
@@ -675,6 +701,78 @@ def diversity_insights():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/presentation/enrollment-predictions')
+def enrollment_predictions():
+    """Predict future enrollment by major for class planning"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        # Use historical data to predict future enrollment
+        main_df = data['main_dataset'].copy()
+        
+        # Group by year and major to get enrollment trends
+        yearly_enrollment = main_df.groupby(['year', 'current_major']).size().reset_index(name='enrollment')
+        
+        # Calculate growth rates for top majors
+        current_year_data = yearly_enrollment[yearly_enrollment['year'] == 2025]
+        previous_year_data = yearly_enrollment[yearly_enrollment['year'] == 2024]
+        
+        # Merge to calculate growth
+        growth_analysis = current_year_data.merge(
+            previous_year_data, 
+            on='current_major', 
+            suffixes=('_2025', '_2024')
+        )
+        growth_analysis['growth_rate'] = (
+            (growth_analysis['enrollment_2025'] - growth_analysis['enrollment_2024']) 
+            / growth_analysis['enrollment_2024'] * 100
+        )
+        
+        # Predict 2026 enrollment
+        growth_analysis['predicted_2026'] = (
+            growth_analysis['enrollment_2025'] * (1 + growth_analysis['growth_rate'] / 100)
+        ).round().astype(int)
+        
+        # Focus on top 8 majors
+        top_majors = growth_analysis.nlargest(8, 'enrollment_2025')
+        
+        fig = go.Figure()
+        
+        # Current enrollment bars
+        fig.add_trace(go.Bar(
+            name='Current (2025)',
+            x=top_majors['current_major'],
+            y=top_majors['enrollment_2025'],
+            marker_color='#003366',
+            text=top_majors['enrollment_2025'],
+            textposition='auto'
+        ))
+        
+        # Predicted enrollment bars
+        fig.add_trace(go.Bar(
+            name='Predicted (2026)',
+            x=top_majors['current_major'],
+            y=top_majors['predicted_2026'],
+            marker_color='#4A90E2',
+            text=top_majors['predicted_2026'],
+            textposition='auto'
+        ))
+        
+        fig.update_layout(
+            title='Enrollment Predictions by Major - Planning for 2026',
+            xaxis_title='Major',
+            yaxis_title='Projected Students',
+            template='plotly_white',
+            height=500,
+            barmode='group',
+            margin=dict(l=50, r=50, t=60, b=120)
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Templates creation
 def create_templates():
     """Create HTML templates"""
@@ -709,7 +807,7 @@ def create_templates():
     <div class="header">
         <h1>🏛️ Queens College CUNY</h1>
         <h2>Student Enrollment Management System</h2>
-        <p>VP Presentation Ready | 16,500 Students | $123.8M Revenue</p>
+        <p>Academic Analytics | 16,500 Students | 16 Programs</p>
     </div>
     
     <div class="container">
@@ -727,8 +825,8 @@ def create_templates():
                 <div class="stat-label">Capacity Utilization</div>
             </div>
             <div class="stat">
-                <div class="stat-number">$123.8M</div>
-                <div class="stat-label">Annual Revenue</div>
+                <div class="stat-number">3.2</div>
+                <div class="stat-label">Average GPA</div>
             </div>
         </div>
         
@@ -948,8 +1046,8 @@ def create_templates():
             </div>
             
             <div class="chart-section">
-                <h3>Financial Overview</h3>
-                <div id="financial-chart"></div>
+                <h3>Class Size Planning</h3>
+                <div id="class-planning-chart"></div>
             </div>
         </div>
         
@@ -979,6 +1077,11 @@ def create_templates():
             <h2>Historical Gender Trends</h2>
             <div id="gender-trends-chart"></div>
         </div>
+        
+        <div class="chart-section">
+            <h2>📈 Enrollment Predictions for 2026</h2>
+            <div id="enrollment-predictions-chart"></div>
+        </div>
     </div>
     
     <script>
@@ -986,9 +1089,10 @@ def create_templates():
         loadExecutiveKPIs();
         loadEnrollmentChart();
         loadCapacityChart();
-        loadFinancialChart();
+        loadClassPlanningChart();
         loadTrendsChart();
         loadGenderAnalytics();
+        loadEnrollmentPredictions();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -1000,8 +1104,8 @@ def create_templates():
                 
                 document.getElementById('kpi-section').innerHTML = 
                     '<div class="kpi-row">' +
-                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_enrollment.toLocaleString() + '</div><div class="kpi-label">Total Enrollment</div></div>' +
-                    '<div class="kpi-card"><div class="kpi-number">' + financial.revenue_formatted + '</div><div class="kpi-label">Annual Revenue</div></div>' +
+                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_enrollment.toLocaleString() + '</div><div class="kpi-label">Total Students</div></div>' +
+                    '<div class="kpi-card"><div class="kpi-number">' + kpis.total_programs + '</div><div class="kpi-label">Academic Programs</div></div>' +
                     '<div class="kpi-card"><div class="kpi-number">' + kpis.capacity_utilization_pct + '%</div><div class="kpi-label">Capacity Utilization</div></div>' +
                     '<div class="kpi-card"><div class="kpi-number">' + academic.average_college_gpa + '</div><div class="kpi-label">Average GPA</div></div>' +
                     '</div>';
@@ -1024,11 +1128,11 @@ def create_templates():
             });
         }
         
-        function loadFinancialChart() {
-            fetch('/api/presentation/financial-overview')
+        function loadClassPlanningChart() {
+            fetch('/api/presentation/class-size-planning')
             .then(response => response.json())
             .then(chartData => {
-                Plotly.newPlot('financial-chart', chartData.data, chartData.layout, {responsive: true});
+                Plotly.newPlot('class-planning-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
         
@@ -1091,6 +1195,14 @@ def create_templates():
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('gender-trends-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+        }
+        
+        function loadEnrollmentPredictions() {
+            fetch('/api/presentation/enrollment-predictions')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('enrollment-predictions-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>
