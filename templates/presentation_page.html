@@ -76,8 +76,18 @@
         </div>
         
         <div class="chart-section">
-            <h2>📈 Enrollment Predictions for 2026</h2>
-            <div id="enrollment-predictions-chart"></div>
+            <h2>🎯 Major Choice Predictions</h2>
+            <div id="major-choice-chart"></div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>📚 Course Assignment Planning by Level</h2>
+            <div id="course-assignment-chart"></div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>👨‍🏫 Professor Workload Analysis</h2>
+            <div id="professor-workload-chart"></div>
         </div>
     </div>
     
@@ -89,7 +99,7 @@
         loadClassPlanningChart();
         loadTrendsChart();
         loadGenderAnalytics();
-        loadEnrollmentPredictions();
+        loadCourseAssignmentPlanning();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -195,11 +205,26 @@
             });
         }
         
-        function loadEnrollmentPredictions() {
-            fetch('/api/presentation/enrollment-predictions')
+        function loadCourseAssignmentPlanning() {
+            // Load major choice predictions
+            fetch('/api/presentation/major-choice-predictions')
             .then(response => response.json())
             .then(chartData => {
-                Plotly.newPlot('enrollment-predictions-chart', chartData.data, chartData.layout, {responsive: true});
+                Plotly.newPlot('major-choice-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+            
+            // Load course assignment planning
+            fetch('/api/presentation/course-assignment-planning')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('course-assignment-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+            
+            // Load professor workload analysis
+            fetch('/api/presentation/professor-workload-analysis')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('professor-workload-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>

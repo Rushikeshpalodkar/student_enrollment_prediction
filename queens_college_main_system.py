@@ -701,72 +701,245 @@ def diversity_insights():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/presentation/enrollment-predictions')
-def enrollment_predictions():
-    """Predict future enrollment by major for class planning"""
+@app.route('/api/presentation/major-choice-predictions')
+def major_choice_predictions():
+    """Predict student major choices based on historical patterns"""
     try:
         if not data:
             return jsonify({'error': 'Data not available'}), 500
             
-        # Use historical data to predict future enrollment
+        # Use historical data to predict major choice patterns
         main_df = data['main_dataset'].copy()
         
-        # Group by year and major to get enrollment trends
-        yearly_enrollment = main_df.groupby(['year', 'current_major']).size().reset_index(name='enrollment')
+        # Analyze historical major choice patterns by student characteristics
+        major_patterns = main_df.groupby(['current_major', 'semester']).agg({
+            'student_id': 'count',
+            'current_gpa': 'mean',
+            'high_school_gpa': 'mean',
+            'sat_score': 'mean'
+        }).reset_index()
+        major_patterns.columns = ['major', 'semester', 'student_count', 'avg_gpa', 'avg_hs_gpa', 'avg_sat']
         
-        # Calculate growth rates for top majors
-        current_year_data = yearly_enrollment[yearly_enrollment['year'] == 2025]
-        previous_year_data = yearly_enrollment[yearly_enrollment['year'] == 2024]
+        # Calculate expected new students by major (based on freshman patterns)
+        freshman_patterns = main_df[main_df['semester'] <= 2].groupby('current_major').size().reset_index(name='freshman_count')
         
-        # Merge to calculate growth
-        growth_analysis = current_year_data.merge(
-            previous_year_data, 
-            on='current_major', 
-            suffixes=('_2025', '_2024')
-        )
-        growth_analysis['growth_rate'] = (
-            (growth_analysis['enrollment_2025'] - growth_analysis['enrollment_2024']) 
-            / growth_analysis['enrollment_2024'] * 100
-        )
-        
-        # Predict 2026 enrollment
-        growth_analysis['predicted_2026'] = (
-            growth_analysis['enrollment_2025'] * (1 + growth_analysis['growth_rate'] / 100)
+        # Predict next year's incoming students by major
+        total_expected_freshmen = 4000  # Typical yearly intake
+        freshman_patterns['predicted_new_students'] = (
+            (freshman_patterns['freshman_count'] / freshman_patterns['freshman_count'].sum()) * total_expected_freshmen
         ).round().astype(int)
         
         # Focus on top 8 majors
-        top_majors = growth_analysis.nlargest(8, 'enrollment_2025')
+        top_majors = freshman_patterns.nlargest(8, 'predicted_new_students')
         
         fig = go.Figure()
         
-        # Current enrollment bars
+        # Historical freshman enrollment
         fig.add_trace(go.Bar(
-            name='Current (2025)',
+            name='Historical Freshman',
             x=top_majors['current_major'],
-            y=top_majors['enrollment_2025'],
+            y=top_majors['freshman_count'],
             marker_color='#003366',
-            text=top_majors['enrollment_2025'],
+            text=top_majors['freshman_count'],
             textposition='auto'
         ))
         
-        # Predicted enrollment bars
+        # Predicted new students
         fig.add_trace(go.Bar(
-            name='Predicted (2026)',
+            name='Predicted New Students',
             x=top_majors['current_major'],
-            y=top_majors['predicted_2026'],
+            y=top_majors['predicted_new_students'],
             marker_color='#4A90E2',
-            text=top_majors['predicted_2026'],
+            text=top_majors['predicted_new_students'],
             textposition='auto'
         ))
         
         fig.update_layout(
-            title='Enrollment Predictions by Major - Planning for 2026',
+            title='Predicted Major Choices - New Student Enrollment',
             xaxis_title='Major',
-            yaxis_title='Projected Students',
+            yaxis_title='Expected Students',
             template='plotly_white',
             height=500,
             barmode='group',
             margin=dict(l=50, r=50, t=60, b=120)
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/course-assignment-planning')
+def course_assignment_planning():
+    """Detailed course assignment planning by level and professor capacity"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        main_df = data['main_dataset'].copy()
+        
+        # Calculate course needs by major and student level
+        course_planning = []
+        
+        for major in ['Business Administration', 'Psychology', 'Computer Science', 'Biology', 'English', 'Mathematics']:
+            major_students = main_df[main_df['current_major'] == major]
+            
+            # Calculate students by level based on total credits
+            freshman = len(major_students[major_students['total_credits'] <= 30])  # 0-30 credits
+            sophomore = len(major_students[(major_students['total_credits'] > 30) & (major_students['total_credits'] <= 60)])  # 31-60
+            junior = len(major_students[(major_students['total_credits'] > 60) & (major_students['total_credits'] <= 90)])  # 61-90
+            senior = len(major_students[major_students['total_credits'] > 90])  # 90+
+            
+            # Calculate course sections needed (assuming students take 4 courses per semester)
+            # Different class sizes by level: Freshman (30), Sophomore (25), Junior/Senior (20)
+            
+            course_planning.append({
+                'major': major,
+                'level': 'Freshman (100-level)',
+                'students': freshman,
+                'sections_needed': max(1, round(freshman * 4 / 30)),  # 30 students per freshman class
+                'avg_class_size': min(30, freshman * 4 / max(1, round(freshman * 4 / 30))),
+                'professor_load': round(freshman * 4 / 30 / 4)  # Assuming professors teach 4 sections
+            })
+            
+            course_planning.append({
+                'major': major,
+                'level': 'Sophomore (200-level)',
+                'students': sophomore,
+                'sections_needed': max(1, round(sophomore * 4 / 25)),  # 25 students per sophomore class
+                'avg_class_size': min(25, sophomore * 4 / max(1, round(sophomore * 4 / 25))),
+                'professor_load': round(sophomore * 4 / 25 / 4)
+            })
+            
+            course_planning.append({
+                'major': major,
+                'level': 'Junior (300-level)',
+                'students': junior,
+                'sections_needed': max(1, round(junior * 4 / 20)),  # 20 students per junior class
+                'avg_class_size': min(20, junior * 4 / max(1, round(junior * 4 / 20))),
+                'professor_load': round(junior * 4 / 20 / 4)
+            })
+            
+            course_planning.append({
+                'major': major,
+                'level': 'Senior (400-level)',
+                'students': senior,
+                'sections_needed': max(1, round(senior * 4 / 15)),  # 15 students per senior class
+                'avg_class_size': min(15, senior * 4 / max(1, round(senior * 4 / 15))),
+                'professor_load': round(senior * 4 / 15 / 4)
+            })
+        
+        # Convert to DataFrame for easier handling
+        planning_df = pd.DataFrame(course_planning)
+        
+        # Focus on top majors for visualization
+        top_majors_planning = planning_df[planning_df['major'].isin(['Business Administration', 'Psychology', 'Computer Science', 'Biology'])]
+        
+        fig = go.Figure()
+        
+        levels = ['Freshman (100-level)', 'Sophomore (200-level)', 'Junior (300-level)', 'Senior (400-level)']
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+        
+        for i, level in enumerate(levels):
+            level_data = top_majors_planning[top_majors_planning['level'] == level]
+            
+            fig.add_trace(go.Bar(
+                name=level,
+                x=level_data['major'],
+                y=level_data['sections_needed'],
+                marker_color=colors[i],
+                text=level_data['sections_needed'],
+                textposition='auto',
+                hovertemplate='<b>%{x}</b><br>' +
+                             'Level: ' + level + '<br>' +
+                             'Students: %{customdata[0]}<br>' +
+                             'Sections: %{y}<br>' +
+                             'Avg Class Size: %{customdata[1]:.0f}<br>' +
+                             'Professor Load: %{customdata[2]:.1f}',
+                customdata=list(zip(level_data['students'], level_data['avg_class_size'], level_data['professor_load']))
+            ))
+        
+        fig.update_layout(
+            title='Course Sections Needed by Major and Level',
+            xaxis_title='Major',
+            yaxis_title='Number of Course Sections',
+            template='plotly_white',
+            height=600,
+            barmode='stack',
+            margin=dict(l=50, r=50, t=60, b=100)
+        )
+        
+        return jsonify(fig.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/professor-workload-analysis')
+def professor_workload_analysis():
+    """Analyze professor workload and class assignment efficiency"""
+    try:
+        if not data:
+            return jsonify({'error': 'Data not available'}), 500
+            
+        # Calculate professor needs by major
+        workload_data = []
+        majors = ['Business Administration', 'Psychology', 'Computer Science', 'Biology', 'English', 'Mathematics']
+        
+        for major in majors:
+            # Estimate based on typical course loads
+            total_sections = {
+                'Business Administration': 45,  # Based on enrollment
+                'Psychology': 38,
+                'Computer Science': 35,
+                'Biology': 28,
+                'English': 25,
+                'Mathematics': 22
+            }.get(major, 20)
+            
+            # Assume professors teach 4 sections per semester, 2 semesters per year
+            professors_needed = max(1, round(total_sections / 8))  # 8 sections per year per professor
+            
+            # Calculate different scenarios
+            workload_data.append({
+                'major': major,
+                'total_sections': total_sections,
+                'professors_needed': professors_needed,
+                'sections_per_prof': round(total_sections / professors_needed, 1),
+                'efficiency_score': min(100, (8 / (total_sections / professors_needed)) * 100)  # Based on 8 sections being optimal
+            })
+        
+        workload_df = pd.DataFrame(workload_data)
+        
+        fig = go.Figure()
+        
+        # Professor count bars
+        fig.add_trace(go.Bar(
+            name='Professors Needed',
+            x=workload_df['major'],
+            y=workload_df['professors_needed'],
+            marker_color='#003366',
+            text=workload_df['professors_needed'],
+            textposition='auto',
+            yaxis='y'
+        ))
+        
+        # Efficiency line
+        fig.add_trace(go.Scatter(
+            name='Workload Efficiency %',
+            x=workload_df['major'],
+            y=workload_df['efficiency_score'],
+            mode='lines+markers',
+            marker_color='#ff7f0e',
+            line=dict(width=3),
+            yaxis='y2'
+        ))
+        
+        fig.update_layout(
+            title='Professor Workload Analysis by Major',
+            xaxis_title='Major',
+            template='plotly_white',
+            height=500,
+            yaxis=dict(title='Number of Professors', side='left'),
+            yaxis2=dict(title='Efficiency Score (%)', side='right', overlaying='y'),
+            margin=dict(l=50, r=50, t=60, b=100)
         )
         
         return jsonify(fig.to_dict())
@@ -1079,8 +1252,18 @@ def create_templates():
         </div>
         
         <div class="chart-section">
-            <h2>📈 Enrollment Predictions for 2026</h2>
-            <div id="enrollment-predictions-chart"></div>
+            <h2>🎯 Major Choice Predictions</h2>
+            <div id="major-choice-chart"></div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>📚 Course Assignment Planning by Level</h2>
+            <div id="course-assignment-chart"></div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>👨‍🏫 Professor Workload Analysis</h2>
+            <div id="professor-workload-chart"></div>
         </div>
     </div>
     
@@ -1092,7 +1275,7 @@ def create_templates():
         loadClassPlanningChart();
         loadTrendsChart();
         loadGenderAnalytics();
-        loadEnrollmentPredictions();
+        loadCourseAssignmentPlanning();
         
         function loadExecutiveKPIs() {
             fetch('/api/executive-kpis')
@@ -1198,11 +1381,26 @@ def create_templates():
             });
         }
         
-        function loadEnrollmentPredictions() {
-            fetch('/api/presentation/enrollment-predictions')
+        function loadCourseAssignmentPlanning() {
+            // Load major choice predictions
+            fetch('/api/presentation/major-choice-predictions')
             .then(response => response.json())
             .then(chartData => {
-                Plotly.newPlot('enrollment-predictions-chart', chartData.data, chartData.layout, {responsive: true});
+                Plotly.newPlot('major-choice-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+            
+            // Load course assignment planning
+            fetch('/api/presentation/course-assignment-planning')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('course-assignment-chart', chartData.data, chartData.layout, {responsive: true});
+            });
+            
+            // Load professor workload analysis
+            fetch('/api/presentation/professor-workload-analysis')
+            .then(response => response.json())
+            .then(chartData => {
+                Plotly.newPlot('professor-workload-chart', chartData.data, chartData.layout, {responsive: true});
             });
         }
     </script>
