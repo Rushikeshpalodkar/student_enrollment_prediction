@@ -18,7 +18,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Flask for web interface
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 
 # Plotting for visualizations
 import plotly.graph_objects as go
@@ -398,6 +398,37 @@ def prediction_page():
 def presentation_page():
     """Enhanced presentation page with all Power BI features"""
     return render_template('ultimate_presentation_page.html')
+
+# Power BI CSV File Download Routes
+@app.route('/PowerBI_Current_Year_2025_Detailed.csv')
+def download_current_enrollment():
+    """Download current enrollment CSV for Power BI"""
+    return send_file('PowerBI_Current_Year_2025_Detailed.csv', as_attachment=True, download_name='Current_Enrollment_2025.csv')
+
+@app.route('/PowerBI_Capacity_Analysis.csv')
+def download_capacity_analysis():
+    """Download capacity analysis CSV for Power BI"""
+    return send_file('PowerBI_Capacity_Analysis.csv', as_attachment=True, download_name='Capacity_Analysis.csv')
+
+@app.route('/PowerBI_Historical_Enrollment_2018-2025.csv')
+def download_historical_trends():
+    """Download historical trends CSV for Power BI"""
+    return send_file('PowerBI_Historical_Enrollment_2018-2025.csv', as_attachment=True, download_name='Historical_Trends_2018-2025.csv')
+
+@app.route('/PowerBI_Gender_Analysis_by_Major.csv')
+def download_gender_analysis():
+    """Download gender analysis CSV for Power BI"""
+    return send_file('PowerBI_Gender_Analysis_by_Major.csv', as_attachment=True, download_name='Gender_Analysis.csv')
+
+@app.route('/PowerBI_School_Analysis.csv')
+def download_school_analysis():
+    """Download school analysis CSV for Power BI"""
+    return send_file('PowerBI_School_Analysis.csv', as_attachment=True, download_name='School_Analysis.csv')
+
+@app.route('/PowerBI_Yearly_Trends.csv')
+def download_yearly_trends():
+    """Download yearly trends CSV for Power BI"""
+    return send_file('PowerBI_Yearly_Trends.csv', as_attachment=True, download_name='Yearly_Trends.csv')
 
 
 # ==============================================================================
