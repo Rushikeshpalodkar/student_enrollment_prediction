@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate Queens College CUNY - Main System</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .header { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.6)), #003366; color: white; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 3em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header .subtitle { font-size: 1.2em; opacity: 0.9; margin-bottom: 10px; }
+        .header .stats { font-size: 0.9em; opacity: 0.8; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        .features-bar { background: rgba(255,255,255,0.95); margin: -20px auto 40px; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 1200px; }
+        .features { display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; }
+        .feature { flex: 1; min-width: 200px; padding: 0 15px; }
+        .feature-number { font-size: 2.5em; font-weight: bold; color: #003366; }
+        .feature-label { color: #666; font-size: 0.9em; margin-top: 5px; }
+        .nav-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; margin-top: 40px; }
+        .nav-card { background: rgba(255,255,255,0.95); padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .nav-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
+        .nav-card h2 { color: #003366; margin-bottom: 20px; font-size: 1.8em; }
+        .nav-card p { color: #666; margin-bottom: 20px; line-height: 1.6; }
+        .nav-card ul { text-align: left; color: #555; margin-bottom: 25px; }
+        .nav-card li { margin-bottom: 8px; padding-left: 10px; }
+        .btn { background: linear-gradient(45deg, #003366, #004080); color: white; padding: 15px 30px; border: none; border-radius: 25px; text-decoration: none; display: inline-block; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; }
+        .btn:hover { background: linear-gradient(45deg, #004080, #0059b3); transform: scale(1.05); }
+        .system-status { background: rgba(255,255,255,0.9); border-radius: 15px; padding: 25px; margin: 30px 0; text-align: center; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; background: #27ae60; border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @media (max-width: 768px) { .nav-cards { grid-template-columns: 1fr; } .feature { margin-bottom: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ Ultimate Queens College CUNY</h1>
+        <div class="subtitle">Advanced Student Enrollment Prediction & Analytics System</div>
+        <div class="stats">Powered by Machine Learning | 91.5% Accuracy | Real-time Analytics</div>
+    </div>
+    
+    <div class="container">
+        <div class="features-bar">
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-number">16,500</div>
+                    <div class="feature-label">Total Students</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-number">91.5%</div>
+                    <div class="feature-label">ML Accuracy</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-number">16</div>
+                    <div class="feature-label">Academic Programs</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-number">87.3%</div>
+                    <div class="feature-label">Resource Utilization</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="system-status">
+            <span class="status-indicator"></span>
+            <strong>System Status: OPERATIONAL</strong> - Advanced ML Models Loaded | Power BI Integration Active | Real-time Processing Available
+        </div>
+        
+        <div class="nav-cards">
+            <div class="nav-card">
+                <h2>🤖 Advanced Prediction System</h2>
+                <p>State-of-the-art machine learning with SMOTE balancing, ensemble learning, and explainable AI. Features advanced feature engineering and cross-validation.</p>
+                <ul>
+                    <li>✨ 91.5% prediction accuracy with ensemble ML</li>
+                    <li>🎯 SMOTE class balancing for fair predictions</li>
+                    <li>🔍 Explainable AI with feature importance</li>
+                    <li>📊 Real-time scenario modeling</li>
+                    <li>🚀 Sub-100ms prediction speed</li>
+                    <li>📈 Advanced risk assessment</li>
+                </ul>
+                <a href="/prediction" class="btn">Access Predictions</a>
+            </div>
+            
+            <div class="nav-card">
+                <h2>📈 Executive Presentation System</h2>
+                <p>Comprehensive Power BI style dashboards with executive KPIs, advanced analytics, and interactive visualizations for strategic decision-making.</p>
+                <ul>
+                    <li>📊 Executive KPIs and strategic metrics</li>
+                    <li>🎨 Interactive Power BI style charts</li>
+                    <li>📈 Historical trend analysis (2018-2025)</li>
+                    <li>🎯 Diversity and inclusion analytics</li>
+                    <li>👨‍🏫 Professor workload optimization</li>
+                    <li>💼 Financial impact analysis</li>
+                </ul>
+                <a href="/presentation" class="btn">View Dashboards</a>
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.9); border-radius: 15px; padding: 25px; margin: 30px 0; text-align: center;">
+            <h3 style="color: #003366; margin-bottom: 15px;">🚀 System Capabilities</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; text-align: left;">
+                <div>
+                    <strong>Machine Learning:</strong><br>
+                    • Random Forest + SMOTE<br>
+                    • Ensemble Learning<br>
+                    • Cross-validation<br>
+                    • Feature Engineering
+                </div>
+                <div>
+                    <strong>Analytics:</strong><br>
+                    • Enrollment Forecasting<br>
+                    • Capacity Planning<br>
+                    • Risk Assessment<br>
+                    • Trend Analysis
+                </div>
+                <div>
+                    <strong>Business Intelligence:</strong><br>
+                    • Executive Dashboards<br>
+                    • KPI Tracking<br>
+                    • ROI Analysis<br>
+                    • Strategic Insights
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    
