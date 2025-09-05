@@ -866,6 +866,7 @@ def enhanced_executive_kpis():
 @app.route('/api/presentation/enrollment-overview')
 def enhanced_enrollment_overview():
     """Enhanced enrollment overview with advanced analytics"""
+    global system
     try:
         if 'current' not in system.data:
             return jsonify({'error': 'Current enrollment data not available'}), 500
