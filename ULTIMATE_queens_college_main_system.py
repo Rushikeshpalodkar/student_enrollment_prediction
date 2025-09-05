@@ -97,7 +97,7 @@ class UltimateQueensCollegeSystem:
                 'current': 'verified_powerbi_files/PowerBI_Current_Enrollment_Verified.csv',
                 'historical': 'verified_powerbi_files/PowerBI_Historical_Trends_Verified.csv',
                 'gender': 'verified_powerbi_files/PowerBI_Gender_Analysis_Verified.csv',
-                'financial': 'verified_powerbi_files/PowerBI_Financial_Analysis_Verified.csv',
+                'capacity': 'verified_powerbi_files/PowerBI_Capacity_Analysis_Verified.csv',
                 'age': 'verified_powerbi_files/PowerBI_Age_Analysis_Verified.csv',
                 'yearly': 'verified_powerbi_files/PowerBI_Yearly_Totals_Verified.csv'
             }
@@ -190,10 +190,11 @@ class UltimateQueensCollegeSystem:
                 "graduation_rate_pct": 84.2,
                 "retention_rate_pct": 91.5
             },
-            "financial_metrics": {
-                "tuition_revenue": 45500000,
-                "cost_per_student": 12500,
-                "financial_aid_pct": 68.3
+            "institutional_metrics": {
+                "total_capacity": 18500,
+                "current_utilization": 89.2,
+                "academic_programs": 45,
+                "student_faculty_ratio": 16.5
             }
         }
     

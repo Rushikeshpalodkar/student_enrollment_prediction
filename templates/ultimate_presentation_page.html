@@ -90,7 +90,7 @@
         
         <div class="chart-section">
             <h2>💼 Financial Impact & ROI</h2>
-            <div id="financial-impact" class="loading">Loading financial analysis...</div>
+            <div id="institutional-analysis" class="loading">Loading institutional analysis...</div>
         </div>
         
         <div class="chart-section">
@@ -122,7 +122,7 @@
             .then(data => {
                 const institution = data.institution_overview || {};
                 const academic = data.academic_performance || {};
-                const financial = data.financial_metrics || {};
+                const institutional = data.institutional_metrics || {};
                 const strategic = data.strategic_metrics || {};
                 
                 let html = '<div class="kpi-row">';
@@ -192,7 +192,7 @@
         }
         
         function loadCapacityChart() {
-            fetch('/api/presentation/capacity-analysis')
+            fetch('/api/institutional/capacity-analysis')
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('capacity-chart', chartData.data, chartData.layout, {responsive: true});
@@ -205,7 +205,7 @@
         }
         
         function loadTrendsChart() {
-            fetch('/api/presentation/historical-trends')
+            fetch('/api/institutional/historical-trends')
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('trends-chart', chartData.data, chartData.layout, {responsive: true});
@@ -219,7 +219,7 @@
         
         function loadGenderAnalytics() {
             // Load diversity insights
-            fetch('/api/presentation/diversity-insights')
+            fetch('/api/institutional/metrics')
             .then(response => response.json())
             .then(data => {
                 let html = '<div class="insight-box">';
@@ -255,7 +255,7 @@
         }
         
         function loadGenderCharts() {
-            fetch('/api/presentation/gender-ratio-trends')
+            fetch('/api/institutional/metrics')
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('gender-ratio-chart', chartData.data, chartData.layout, {responsive: true});
@@ -265,7 +265,7 @@
                     '<div class="error">Gender ratio chart temporarily unavailable.</div>';
             });
             
-            fetch('/api/presentation/gender-competition-analysis')
+            fetch('/api/institutional/metrics')
             .then(response => response.json())
             .then(chartData => {
                 Plotly.newPlot('gender-competition-chart', chartData.data, chartData.layout, {responsive: true});
@@ -322,7 +322,7 @@
             fetch('/api/executive-kpis')
             .then(response => response.json())
             .then(data => {
-                const financial = data.financial_metrics || {};
+                const institutional = data.institutional_metrics || {};
                 const strategic = data.strategic_metrics || {};
                 const operational = data.operational_efficiency || {};
                 
@@ -370,10 +370,10 @@
                 
                 html += '</div>';
                 
-                document.getElementById('financial-impact').innerHTML = html;
+                document.getElementById('institutional-analysis').innerHTML = html;
             })
             .catch(error => {
-                document.getElementById('financial-impact').innerHTML = 
+                document.getElementById('institutional-analysis').innerHTML = 
                     '<div class="error">Financial impact analysis temporarily unavailable.</div>';
             });
         }

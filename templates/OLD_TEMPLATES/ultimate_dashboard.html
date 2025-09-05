@@ -233,7 +233,7 @@
                         <option value="current">Current Enrollment</option>
                         <option value="historical">Historical Trends</option>
                         <option value="gender">Gender Analysis</option>
-                        <option value="financial">Financial Analysis</option>
+                        <option value="capacity">Capacity Analysis</option>
                     </select>
                 </div>
                 <div class="control-group">
@@ -339,7 +339,7 @@
                 
                 const enrollment = kpis.institution_overview?.total_enrollment || 16500;
                 const utilization = kpis.institution_overview?.capacity_utilization_pct || 86.8;
-                const revenue = kpis.financial_metrics?.revenue_formatted || '$123.8M';
+                const capacity = kpis.institutional_metrics?.capacity_utilization || '89.2%';
                 const gradRate = kpis.academic_performance?.graduation_rate_6_year_pct || 52;
                 const avgGPA = kpis.academic_performance?.average_college_gpa || 3.20;
                 
@@ -353,8 +353,8 @@
                         <div class="kpi-label">Capacity Used</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-value">${revenue}</div>
-                        <div class="kpi-label">Annual Revenue</div>
+                        <div class="kpi-value">${capacity}</div>
+                        <div class="kpi-label">Utilization Rate</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-value">${gradRate}%</div>

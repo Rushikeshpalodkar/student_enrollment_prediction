@@ -10,7 +10,7 @@ echo [INFO] This is now the ONLY system file you need to run
 echo.
 echo System Features:
 echo [✓] Advanced ML Models (91.5%% accuracy)
-echo [✓] SMOTE Class Balancing  
+echo [✓] SMOTE Class Balancing
 echo [✓] Feature Engineering (15+ features)
 echo [✓] Fast Processing Mode
 echo [✓] Complete Power BI Integration  
