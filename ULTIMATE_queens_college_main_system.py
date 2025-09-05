@@ -867,10 +867,10 @@ def enhanced_executive_kpis():
 def enhanced_enrollment_overview():
     """Enhanced enrollment overview with advanced analytics"""
     try:
-        if 'current' not in data:
+        if 'current' not in system.data:
             return jsonify({'error': 'Current enrollment data not available'}), 500
             
-        df = data['current'].head(12)  # Show more programs
+        df = system.data['current'].head(12)  # Show more programs
         
         # Add trend indicators
         growth_rates = np.random.uniform(-5, 15, len(df))  # Simulated growth rates
