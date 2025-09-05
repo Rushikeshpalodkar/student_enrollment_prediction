@@ -892,50 +892,127 @@ def enhanced_executive_kpis():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# All other presentation endpoints from the original system remain the same...
-# (I'll include the key ones and add enhancements)
+# =============================================================================
+# INSTANT LOADING PRE-GENERATED CHARTS API ENDPOINTS
+# Charts are pre-generated for instant loading - no waiting time!
+# =============================================================================
+
+def load_pre_generated_chart(chart_name):
+    """Load a pre-generated chart from JSON file"""
+    try:
+        chart_path = f"pre_generated_charts/{chart_name}.json"
+        if os.path.exists(chart_path):
+            with open(chart_path, 'r') as f:
+                chart_data = json.load(f)
+            return chart_data
+        else:
+            return None
+    except Exception as e:
+        print(f"[ERROR] Loading chart {chart_name}: {str(e)}")
+        return None
 
 @app.route('/api/presentation/enrollment-overview')
-def enhanced_enrollment_overview():
-    """Enhanced enrollment overview with advanced analytics"""
-    global system
+def instant_enrollment_overview():
+    """INSTANT loading enrollment overview chart - pre-generated"""
     try:
-        if 'current' not in system.data:
-            return jsonify({'error': 'Current enrollment data not available'}), 500
-            
-        df = system.data['current'].head(12)  # Show more programs
-        
-        # Add trend indicators
-        growth_rates = np.random.uniform(-5, 15, len(df))  # Simulated growth rates
-        
-        fig = go.Figure([
-            go.Bar(
-                x=df['current_major'].tolist(),
-                y=df['Current_Enrollment'].tolist(),
-                marker_color=['#e74c3c' if growth < 0 else '#27ae60' if growth > 10 else '#3498db' 
-                             for growth in growth_rates],
-                text=[f"{enroll}<br>({growth:+.1f}%)" for enroll, growth in zip(df['Current_Enrollment'], growth_rates)],
-                textposition='auto',
-                hovertemplate='<b>%{x}</b><br>Enrollment: %{y}<br>Growth: %{customdata:+.1f}%<extra></extra>',
-                customdata=growth_rates
-            )
-        ])
-        
-        fig.update_layout(
-            title='Current Enrollment by Major - Queens College CUNY<br><sub>Color-coded by growth rate: Red (declining), Blue (stable), Green (growing)</sub>',
-            xaxis_title='Major',
-            yaxis_title='Current Enrollment',
-            template='plotly_white',
-            height=500,
-            margin=dict(l=50, r=50, t=80, b=120),
-            xaxis={'tickangle': 45}
-        )
-        
-        return jsonify(fig.to_dict())
+        chart_data = load_pre_generated_chart('enrollment_overview')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Continue with all other endpoints... (keeping for brevity, but they would all be enhanced similarly)
+@app.route('/api/presentation/historical-trends')
+def instant_historical_trends():
+    """INSTANT loading historical trends chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('historical_trends')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/gender-analysis')
+def instant_gender_analysis():
+    """INSTANT loading gender analysis chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('gender_analysis')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/capacity-analysis-chart')
+def instant_capacity_analysis():
+    """INSTANT loading capacity analysis chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('capacity_analysis')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/school-analysis')
+def instant_school_analysis():
+    """INSTANT loading school analysis chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('school_analysis')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/yearly-trends')
+def instant_yearly_trends():
+    """INSTANT loading yearly trends chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('yearly_trends')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/presentation/executive-dashboard')
+def instant_executive_dashboard():
+    """INSTANT loading executive KPIs chart - pre-generated"""
+    try:
+        chart_data = load_pre_generated_chart('executive_kpis')
+        if chart_data:
+            return jsonify(chart_data)
+        else:
+            return jsonify({'error': 'Chart not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# =============================================================================
+# AUTO-REGENERATE CHARTS ON STARTUP
+# =============================================================================
+
+def auto_generate_charts_on_startup():
+    """Automatically generate charts when system starts"""
+    try:
+        print("\n[AUTO-CHART] Generating fresh charts for instant loading...")
+        
+        # Import and run chart generator
+        from chart_generator import generate_all_charts
+        generate_all_charts()
+        
+        print("[OK] All charts pre-generated and ready for instant access!")
+        return True
+    except Exception as e:
+        print(f"[WARNING] Chart auto-generation failed: {str(e)}")
+        return False
 
 def create_enhanced_templates():
     """Create enhanced HTML templates with all advanced features"""
@@ -1280,6 +1357,9 @@ def current_institutional_metrics():
 if __name__ == '__main__':
     # Create enhanced templates first
     create_enhanced_templates()
+    
+    # Auto-generate all charts for instant loading
+    auto_generate_charts_on_startup()
     
     print("\n" + "=" * 70)
     print("ULTIMATE QUEENS COLLEGE CUNY SYSTEM - READY!")

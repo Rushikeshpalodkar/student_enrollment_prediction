@@ -224,6 +224,7 @@
             fetch('/api/presentation/enrollment-overview')
             .then(response => response.json())
             .then(chartData => {
+                // Pre-generated charts have full Plotly structure
                 Plotly.newPlot('enrollment-chart', chartData.data, chartData.layout, {responsive: true});
             })
             .catch(error => {
@@ -234,28 +235,30 @@
         }
         
         function loadCapacityChart() {
-            fetch('/api/institutional/capacity-analysis')
+            fetch('/api/presentation/capacity-analysis-chart')
             .then(response => response.json())
             .then(chartData => {
+                // Pre-generated capacity analysis chart
                 Plotly.newPlot('capacity-chart', chartData.data, chartData.layout, {responsive: true});
             })
             .catch(error => {
                 console.error('Capacity Chart Error:', error);
                 document.getElementById('capacity-chart').innerHTML = 
-                    '<div class="error">Capacity analysis temporarily unavailable.</div>';
+                    '<div class="error">Capacity analysis chart temporarily unavailable.</div>';
             });
         }
         
         function loadTrendsChart() {
-            fetch('/api/institutional/historical-trends')
+            fetch('/api/presentation/historical-trends')
             .then(response => response.json())
             .then(chartData => {
+                // Pre-generated historical trends chart
                 Plotly.newPlot('trends-chart', chartData.data, chartData.layout, {responsive: true});
             })
             .catch(error => {
                 console.error('Trends Chart Error:', error);
                 document.getElementById('trends-chart').innerHTML = 
-                    '<div class="error">Historical trends temporarily unavailable.</div>';
+                    '<div class="error">Historical trends chart temporarily unavailable.</div>';
             });
         }
         
@@ -297,24 +300,21 @@
         }
         
         function loadGenderCharts() {
-            fetch('/api/institutional/metrics')
+            // Load gender analysis chart for both containers
+            fetch('/api/presentation/gender-analysis')
             .then(response => response.json())
             .then(chartData => {
+                // Pre-generated gender analysis chart
                 Plotly.newPlot('gender-ratio-chart', chartData.data, chartData.layout, {responsive: true});
-            })
-            .catch(error => {
-                document.getElementById('gender-ratio-chart').innerHTML = 
-                    '<div class="error">Gender ratio chart temporarily unavailable.</div>';
-            });
-            
-            fetch('/api/institutional/metrics')
-            .then(response => response.json())
-            .then(chartData => {
+                // Use same chart for both containers (can be different in future)
                 Plotly.newPlot('gender-competition-chart', chartData.data, chartData.layout, {responsive: true});
             })
             .catch(error => {
+                console.error('Gender Chart Error:', error);
+                document.getElementById('gender-ratio-chart').innerHTML = 
+                    '<div class="error">Gender analysis chart temporarily unavailable.</div>';
                 document.getElementById('gender-competition-chart').innerHTML = 
-                    '<div class="error">Gender competition analysis temporarily unavailable.</div>';
+                    '<div class="error">Gender analysis chart temporarily unavailable.</div>';
             });
         }
         
