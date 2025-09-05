@@ -45,9 +45,9 @@ START_SYSTEM.bat
 
 ### 🌐 Web Interface:
 
-- **Main**: http://localhost:5000 (dashboard)
-- **Predictions**: http://localhost:5000/prediction 
-- **Presentation**: http://localhost:5000/presentation
+- **Main**: http://localhost:8080 (dashboard)
+- **Predictions**: http://localhost:8080/prediction 
+- **Presentation**: http://localhost:8080/presentation
 
 ---
 

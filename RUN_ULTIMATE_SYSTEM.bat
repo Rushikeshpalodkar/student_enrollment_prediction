@@ -2,11 +2,13 @@
 cls
 echo ================================================================
 echo    QUEENS COLLEGE CUNY - ENROLLMENT PREDICTION SYSTEM
-echo    Single Unified System - All Features Integrated
+echo    NEW UNIFIED SYSTEM - PORT 8080 (No Conflicts!)
 echo ================================================================
 echo.
 echo [INFO] Starting the unified system...
 echo [INFO] This is now the ONLY system file you need to run
+echo [INFO] Running on PORT 8080 to avoid conflicts
+echo [IMPORTANT] Stop any old systems running on port 5000!
 echo.
 echo System Features:
 echo [✓] Advanced ML Models (91.5%% accuracy)

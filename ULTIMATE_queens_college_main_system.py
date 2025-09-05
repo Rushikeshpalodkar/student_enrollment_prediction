@@ -1267,13 +1267,13 @@ if __name__ == '__main__':
     print("   * Comprehensive error handling and fallback systems")
     print("")
     print("STARTING ULTIMATE SYSTEM...")
-    print("   URL: http://localhost:5000")
+    print("   URL: http://localhost:8080")
     print("   Status: All systems operational")
     print("   Mode: Fast processing enabled")
     print("=" * 70)
     
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        app.run(host='0.0.0.0', port=8080, debug=False)
     except Exception as e:
         print(f"[ERROR] Failed to start server: {str(e)}")
         print("Try running: python ULTIMATE_queens_college_main_system.py")
