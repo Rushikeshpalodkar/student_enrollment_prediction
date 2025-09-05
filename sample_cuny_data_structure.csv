@@ -1,9 +1,0 @@
-Year,Major,School,Gender,Age,GPA,Ethnicity,Residency,Financial_Aid
-2018,Computer Science,Engineering,Female,19,3.45,Hispanic,In-State,True
-2019,Business Administration,Business,Male,20,3.12,White,Out-of-State,False
-2020,Psychology,Liberal Arts,Female,21,3.67,Asian,In-State,True
-2021,Biology,Sciences,Male,19,2.89,Black,In-State,True
-2022,Nursing,Nursing,Female,22,3.78,Other,International,False
-2023,Engineering,Engineering,Male,20,3.34,White,Out-of-State,True
-2024,Mathematics,Sciences,Other,23,3.91,Hispanic,In-State,False
-2025,Economics,Business,Female,19,3.23,Asian,In-State,True
