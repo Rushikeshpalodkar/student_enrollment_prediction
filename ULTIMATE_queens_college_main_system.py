@@ -399,6 +399,11 @@ def presentation_page():
     """Enhanced presentation page with all Power BI features"""
     return render_template('ultimate_presentation_page.html')
 
+@app.route('/powerbi')
+def powerbi_direct():
+    """Direct Power BI file access"""
+    return render_template('powerbi_direct.html')
+
 # ==============================================================================
 # ENHANCED PREDICTION ENDPOINTS - Advanced ML with SMOTE, Ensemble, etc.
 # ==============================================================================

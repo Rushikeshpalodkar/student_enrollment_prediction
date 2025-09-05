@@ -40,7 +40,12 @@
         
         <div class="chart-section">
             <h2>📊 Current Enrollment Overview</h2>
-            <div id="enrollment-chart" class="loading">Loading enrollment data...</div>
+            <div class="powerbi-option">
+                <button onclick="openPowerBIFile('PowerBI_Current_Year_2025_Detailed.csv')" class="powerbi-btn">
+                    📊 Open in Power BI - Current Enrollment
+                </button>
+                <div id="enrollment-chart" class="loading">Loading enrollment data...</div>
+            </div>
         </div>
         
         <div class="chart-grid">
